@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Vault de Contactos</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f1f5f9;
+            color: #1e293b;
+        }
+
+        header {
+            background: #1e293b;
+            color: white;
+            padding: 25px 40px;
+        }
+
+        header h1 {
+            margin: 0;
+        }
+
+        header p {
+            margin-bottom: 0;
+            color: #cbd5e1;
+        }
+
+        main {
+            max-width: 1100px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .panel {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+        }
+
+        .panel h2 {
+            margin-top: 0;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 7px;
+            font-size: 15px;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #2563eb;
+        }
+
+        .buscador {
+            margin-bottom: 20px;
+        }
+
+        button {
+            border: none;
+            border-radius: 7px;
+            padding: 10px 15px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-right: 5px;
+        }
+
+        .btn-principal {
+            background: #2563eb;
+            color: white;
+            margin-top: 15px;
+        }
+
+        .btn-principal:hover {
+            background: #1d4ed8;
+        }
+
+        .btn-editar {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .btn-eliminar {
+            background: #dc2626;
+            color: white;
+        }
+
+        .btn-detalle {
+            background: #475569;
+            color: white;
+        }
+
+        .contactos {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .contacto {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .contacto h3 {
+            margin-top: 0;
+            font-size: 20px;
+        }
+
+        .contacto p {
+            margin: 8px 0;
+        }
+
+        .acciones {
+            margin-top: 15px;
+        }
+
+        .mensaje {
+            margin-top: 15px;
+            font-weight: bold;
+        }
+
+        @media (max-width: 700px) {
+
+            .form-grid,
+            .contactos {
+                grid-template-columns: 1fr;
+            }
+
+            header {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+
+        <h1>📇 Vault Electrónico de Contactos</h1>
+
+        <p>
+            Sistema de gestión de contactos personales
+        </p>
+
+    </header>
+
+
+    <main>
+
+        <!-- FORMULARIO -->
+
+        <div class="panel">
+
+            <h2>➕ Registrar contacto</h2>
+
+            <div class="form-grid">
+
+                <input
+                    type="text"
+                    id="nombre"
+                    placeholder="Nombre">
+
+                <input
+                    type="text"
+                    id="apellido"
+                    placeholder="Apellido">
+
+                <input
+                    type="text"
+                    id="telefono"
+                    placeholder="Teléfono">
+
+                <input
+                    type="email"
+                    id="correo"
+                    placeholder="Correo electrónico">
+
+                <input
+                    type="text"
+                    id="empresa"
+                    placeholder="Empresa">
+
+            </div>
+
+            <button
+                class="btn-principal"
+                onclick="crearContacto()">
+
+                💾 Guardar contacto
+
+            </button>
+
+            <div
+                id="mensaje"
+                class="mensaje">
+            </div>
+
+        </div>
+
+
+        <!-- LISTA -->
+
+        <div class="panel">
+
+            <h2>📋 Mis contactos</h2>
+
+            <input
+                class="buscador"
+                type="text"
+                id="buscador"
+                placeholder="🔎 Buscar por nombre o apellido"
+                oninput="buscarContactos()">
+
+            <div
+                id="contactos"
+                class="contactos">
+
+                Cargando contactos...
+
+            </div>
+
+        </div>
+
+    </main>
+
+
+    <script>
+
+        // =====================================
+        // CARGAR CONTACTOS
+        // =====================================
+
+        async function cargarContactos() {
+
+            try {
+
+                const respuesta =
+                    await fetch('/api/contactos');
+
+                const contactos =
+                    await respuesta.json();
+
+                mostrarContactos(contactos);
+
+            } catch (error) {
+
+                console.error(error);
+
+                document.getElementById('contactos').innerHTML =
+                    '<p>❌ Error al cargar los contactos.</p>';
+            }
+        }
+
+
+        // =====================================
+        // MOSTRAR CONTACTOS
+        // =====================================
+
+        function mostrarContactos(contactos) {
+
+            const contenedor =
+                document.getElementById('contactos');
+
+            contenedor.innerHTML = '';
+
+            if (contactos.length === 0) {
+
+                contenedor.innerHTML =
+                    '<p>No se encontraron contactos.</p>';
+
+                return;
+            }
+
+            contactos.forEach(contacto => {
+
+                const tarjeta =
+                    document.createElement('div');
+
+                tarjeta.className = 'contacto';
+
+                tarjeta.innerHTML = `
+
+                    <h3>
+                        ${contacto.nombre}
+                        ${contacto.apellido}
+                    </h3>
+
+                    <p>
+                        📞 <strong>Teléfono:</strong>
+                        ${contacto.telefono}
+                    </p>
+
+                    <p>
+                        📧 <strong>Correo:</strong>
+                        ${contacto.correo}
+                    </p>
+
+                    <p>
+                        🏢 <strong>Empresa:</strong>
+                        ${contacto.empresa}
+                    </p>
+
+                    <div class="acciones">
+
+                        <button
+                            class="btn-detalle"
+                            onclick="verDetalle(${contacto.id})">
+
+                            👁️ Detalle
+
+                        </button>
+
+                        <button
+                            class="btn-editar"
+                            onclick="editarContacto(${contacto.id})">
+
+                            ✏️ Editar
+
+                        </button>
+
+                        <button
+                            class="btn-eliminar"
+                            onclick="eliminarContacto(${contacto.id})">
+
+                            🗑️ Eliminar
+
+                        </button>
+
+                    </div>
+                `;
+
+                contenedor.appendChild(tarjeta);
+
+            });
+        }
+
+
+        // =====================================
+        // CREAR CONTACTO
+        // =====================================
+
+        async function crearContacto() {
+
+            const contacto = {
+
+                nombre:
+                    document.getElementById('nombre').value,
+
+                apellido:
+                    document.getElementById('apellido').value,
+
+                telefono:
+                    document.getElementById('telefono').value,
+
+                correo:
+                    document.getElementById('correo').value,
+
+                empresa:
+                    document.getElementById('empresa').value
+            };
+
+
+            if (
+                !contacto.nombre ||
+                !contacto.apellido ||
+                !contacto.telefono ||
+                !contacto.correo ||
+                !contacto.empresa
+            ) {
+
+                alert('⚠️ Completa todos los campos.');
+
+                return;
+            }
+
+
+            try {
+
+                const respuesta =
+                    await fetch(
+                        '/api/contactos',
+                        {
+                            method: 'POST',
+
+                            headers: {
+                                'Content-Type':
+                                    'application/json'
+                            },
+
+                            body:
+                                JSON.stringify(contacto)
+                        }
+                    );
+
+
+                if (respuesta.ok) {
+
+                    document.getElementById('mensaje')
+                        .textContent =
+                        '✅ Contacto guardado correctamente.';
+
+                    document.getElementById('nombre').value = '';
+                    document.getElementById('apellido').value = '';
+                    document.getElementById('telefono').value = '';
+                    document.getElementById('correo').value = '';
+                    document.getElementById('empresa').value = '';
+
+                    cargarContactos();
+
+                } else {
+
+                    alert(
+                        '❌ No se pudo guardar el contacto.'
+                    );
+                }
+
+            } catch (error) {
+
+                console.error(error);
+
+                alert(
+                    '❌ Error al conectar con la API.'
+                );
+            }
+        }
+
+
+        // =====================================
+        // BUSCAR CONTACTOS
+        // =====================================
+
+        async function buscarContactos() {
+
+            const texto =
+                document.getElementById('buscador').value;
+
+
+            if (texto.trim() === '') {
+
+                cargarContactos();
+
+                return;
+            }
+
+
+            try {
+
+                const respuesta =
+                    await fetch(
+                        `/api/contactos/buscar?texto=${encodeURIComponent(texto)}`
+                    );
+
+                const contactos =
+                    await respuesta.json();
+
+                mostrarContactos(contactos);
+
+            } catch (error) {
+
+                console.error(error);
+
+                alert(
+                    '❌ Error al buscar contactos.'
+                );
+            }
+        }
+
+
+        // =====================================
+        // VER DETALLE
+        // =====================================
+
+        async function verDetalle(id) {
+
+            try {
+
+                const respuesta =
+                    await fetch(
+                        `/api/contactos/${id}`
+                    );
+
+                const contacto =
+                    await respuesta.json();
+
+
+                alert(`
+
+📇 DETALLE DEL CONTACTO
+
+👤 Nombre:
+${contacto.nombre} ${contacto.apellido}
+
+📞 Teléfono:
+${contacto.telefono}
+
+📧 Correo:
+${contacto.correo}
+
+🏢 Empresa:
+${contacto.empresa}
+
+                `);
+
+            } catch (error) {
+
+                console.error(error);
+
+                alert(
+                    '❌ No se pudo obtener el contacto.'
+                );
+            }
+        }
+
+
+        // =====================================
+        // EDITAR CONTACTO
+        // =====================================
+
+        async function editarContacto(id) {
+
+            try {
+
+                const respuesta =
+                    await fetch(
+                        `/api/contactos/${id}`
+                    );
+
+                const contacto =
+                    await respuesta.json();
+
+
+                const nombre =
+                    prompt(
+                        'Nombre:',
+                        contacto.nombre
+                    );
+
+                if (nombre === null) return;
+
+
+                const apellido =
+                    prompt(
+                        'Apellido:',
+                        contacto.apellido
+                    );
+
+                if (apellido === null) return;
+
+
+                const telefono =
+                    prompt(
+                        'Teléfono:',
+                        contacto.telefono
+                    );
+
+                if (telefono === null) return;
+
+
+                const correo =
+                    prompt(
+                        'Correo:',
+                        contacto.correo
+                    );
+
+                if (correo === null) return;
+
+
+                const empresa =
+                    prompt(
+                        'Empresa:',
+                        contacto.empresa
+                    );
+
+                if (empresa === null) return;
+
+
+                const actualizado = {
+
+                    id: id,
+
+                    nombre: nombre,
+
+                    apellido: apellido,
+
+                    telefono: telefono,
+
+                    correo: correo,
+
+                    empresa: empresa
+                };
+
+
+                const respuestaEditar =
+                    await fetch(
+                        `/api/contactos/${id}`,
+                        {
+                            method: 'PUT',
+
+                            headers: {
+                                'Content-Type':
+                                    'application/json'
+                            },
+
+                            body:
+                                JSON.stringify(actualizado)
+                        }
+                    );
+
+
+                if (respuestaEditar.ok) {
+
+                    alert(
+                        '✅ Contacto actualizado correctamente.'
+                    );
+
+                    cargarContactos();
+
+                } else {
+
+                    alert(
+                        '❌ No se pudo actualizar el contacto.'
+                    );
+                }
+
+            } catch (error) {
+
+                console.error(error);
+
+                alert(
+                    '❌ Error al editar el contacto.'
+                );
+            }
+        }
+
+
+        // =====================================
+        // ELIMINAR CONTACTO
+        // =====================================
+
+        async function eliminarContacto(id) {
+
+            const confirmar =
+                confirm(
+                    '¿Estás seguro de eliminar este contacto?'
+                );
+
+
+            if (!confirmar) return;
+
+
+            try {
+
+                const respuesta =
+                    await fetch(
+                        `/api/contactos/${id}`,
+                        {
+                            method: 'DELETE'
+                        }
+                    );
+
+
+                if (respuesta.ok) {
+
+                    alert(
+                        '✅ Contacto eliminado correctamente.'
+                    );
+
+                    cargarContactos();
+
+                } else {
+
+                    alert(
+                        '❌ No se pudo eliminar el contacto.'
+                    );
+                }
+
+            } catch (error) {
+
+                console.error(error);
+
+                alert(
+                    '❌ Error al eliminar el contacto.'
+                );
+            }
+        }
+
+
+        // =====================================
+        // INICIAR APLICACIÓN
+        // =====================================
+
+        cargarContactos();
+
+    </script>
+
+</body>
+
+</html>

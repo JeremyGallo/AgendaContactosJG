@@ -1,0 +1,19 @@
+### Listar contactos
+GET http://localhost:5228/api/contactos
+
+
+### Crear contacto
+POST http://localhost:5228/api/contactos
+Content-Type: application/json
+
+{
+    "nombre": "Jeremy",
+    "apellido": "Gallo",
+    "telefono": "77777777",
+    "correo": "jeremy@gmail.com",
+    "empresa": "AgendaJG"
+}
+
+
+### Ver contacto
+GET http://localhost:5228/api/contactos/1
